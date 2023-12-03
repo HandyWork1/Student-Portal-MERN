@@ -1,0 +1,20 @@
+.container {
+    max-width: 600px;
+    margin: auto;
+  }
+  
+  .score-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .submit {
+    padding: 6px 12px; /* Adjust the padding to make it shorter */
+    font-size: 14px; /* Adjust the font size */
+  }
+
+
+  
+  /* Add more styling as needed */
+  
