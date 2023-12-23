@@ -1,141 +1,121 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-function Signup() {
+function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState("Student");
-  const [courseTeaching, setCourseTeaching] = useState(""); // New state for the course teaching
+  const [courseTeaching, setCourseTeaching] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Make a POST request to the server
-    axios
-      .post("http://localhost:7000/register", {
+    try {
+      const response = await axios.post("http://localhost:7000/api/register", {
         name,
         email,
         password,
-        userType: userType.charAt(0).toUpperCase() + userType.slice(1), // Ensure correct casing
-        courseId: userType === "Lecturer" ? courseTeaching : null, // Include courseTeaching only if userType is "Lecturer"
-      })
-      .then((result) => console.log(result)) // Log the result if the request is successful
-      .catch((err) => console.log(err)); // Log any errors
-
-    // Navigate to the "/" route after the request (regardless of success or failure)
-    navigate("/");
+        userType: userType.charAt(0).toUpperCase() + userType.slice(1),
+        courseId: userType === "Lecturer" ? courseTeaching : null,
+      });
+      console.log(response.data); // Log successful registration response
+      // Redirect to login 
+      navigate('/login');
+    } catch (err) {
+      setError(err.response.data.error || "Something went wrong");
+    }
   };
 
-  // Function to conditionally render the course teaching input
   const renderCourseTeachingInput = () => {
     if (userType === "Lecturer") {
       return (
         <div className="mb-3">
-          <label htmlFor="courseTeaching">
-            <strong>Course Teaching:</strong>
-          </label>
+          <label htmlFor="courseTeaching">Course Teaching:</label>
           <input
             type="text"
-            placeholder="Enter Course"
+            className="form-control"
+            placeholder="Enter Course Teaching"
             autoComplete="off"
             name="courseTeaching"
-            className="form-control rounded-0"
             value={courseTeaching}
             onChange={(e) => setCourseTeaching(e.target.value)}
           />
         </div>
       );
     }
-    return null; // If userType is not "Lecturer", return null (no input field)
+    return null;
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center bg-secondary vh-100">
-      <div className="bg-white p-3 rounded w-25">
-        <h2>Sign Up</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="name">
-              <strong>Name:</strong>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Name"
-              autoComplete="off"
-              name="name"
-              className="form-control rounded-0"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-6">
+          <div className="card p-4">
+            <h2 className="text-center mb-4">Sign Up</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Name"
+                  autoComplete="off"
+                  name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="email"
+                  className="form-control"
+                  placeholder="Email"
+                  autoComplete="off"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <input
+                  type="password"
+                  className="form-control"
+                  placeholder="Password"
+                  autoComplete="off"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <select
+                  className="form-select"
+                  value={userType}
+                  onChange={(e) => setUserType(e.target.value)}
+                  name="userType"
+                >
+                  <option value="Student">Student</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Lecturer">Lecturer</option>
+                </select>
+              </div>
+              {renderCourseTeachingInput()}
+              <button type="submit" className="btn btn-primary w-100">
+                Sign Up
+              </button>
+              {error && <p className="text-danger mt-3">{error}</p>}
+              <p className="mt-3 text-center">
+                Already have an account? <Link to="/login">Login</Link>
+              </p>
+            </form>
           </div>
-          <div className="mb-3">
-            <label htmlFor="email">
-              <strong>Email:</strong>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Email"
-              autoComplete="off"
-              name="email"
-              className="form-control rounded-0"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="password">
-              <strong>Password:</strong>
-            </label>
-            <input
-              type="password"
-              placeholder="Enter password"
-              autoComplete="off"
-              name="password"
-              className="form-control rounded-0"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-3">
-            <label htmlFor="userType">
-              <strong>User Type:</strong>
-            </label>
-            <select
-              className="form-control rounded-0"
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              name="userType" // Include the name attribute for the select element
-            >
-              <option value="Student">Student</option>
-              <option value="Admin">Admin</option>
-              <option value="Lecturer">Lecturer</option>
-            </select>
-          </div>
-
-          {/* Conditionally render the course teaching input */}
-          {renderCourseTeachingInput()}
-
-          <button type="submit" className="btn btn-success w-100 rounded-0">
-            Sign Up
-          </button>
-
-          <br />
-          <p>Already have an account?</p>
-          <Link to="/">
-            <button className="btn btn-default border w-100 bg-light rounded text-decoration-none">
-              Login
-            </button>
-          </Link>
-        </form>
+        </div>
       </div>
     </div>
   );
 }
 
-export default Signup;
+export default Register;
