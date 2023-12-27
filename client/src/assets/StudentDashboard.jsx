@@ -3,7 +3,7 @@ import axios from "axios";
 import { Table, Button} from "react-bootstrap";
 import RegistrationAlertModal from "./modals/RegistrationAlertModal"
 import LogoutAlertModal from "./modals/LogoutAlertModal"
-import {Link, useNavigate} from "react-router-dom"
+import {Link} from "react-router-dom"
 
 const StudentDashboard = () => {
   const [courses, setCourses] = useState([]);
@@ -16,9 +16,7 @@ const StudentDashboard = () => {
   const [userDetails, setUserDetails] = useState(null);
   const [showRegistrationAlert, setShowRegistrationAlert] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [activeItem, setActiveItem] = useState(null);
-  const navigate = useNavigate();
-
+  const [activeItem, setActiveItem] = useState("dashboard");
 
   const fetchCourses = async () => {
     try {
@@ -123,9 +121,10 @@ const StudentDashboard = () => {
   // Function to handle sidebar item click
   const handleSidebarItemClick = (item) => {
     setActiveItem(item);
-    if (item === "registeredCourses") {
-      fetchRegisteredCourses();
-    }
+    console.log(item,"clicked")
+    // if (item === "registeredCourses") {
+    //   fetchRegisteredCourses();
+    // }
   };
 
   return (
@@ -154,6 +153,17 @@ const StudentDashboard = () => {
                   <Link
                     to="#"
                     className={`nav-link text-light ${
+                      activeItem === "dashboard" ? "active" : ""
+                    }`}
+                    onClick={() => handleSidebarItemClick("dashboard")}
+                  >
+                    <i className="fas fa-tachometer-alt me-2"></i> Dashboard
+                  </Link>
+                </li>
+                <li className="nav-item">
+                  <Link
+                    to="#"
+                    className={`nav-link text-light ${
                       activeItem === "registeredCourses" ? "active" : ""
                     }`}
                     onClick={() => handleSidebarItemClick("registeredCourses")}
@@ -162,9 +172,15 @@ const StudentDashboard = () => {
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link to="#" className="nav-link text-light" onClick={() => fetchStudentInfo()}>
-                    <i className="fas fa-chart-bar me-2"></i> View Scores
-                  </Link>
+                  <Link
+                      to="#"
+                      className={`nav-link text-light ${
+                        activeItem === "viewScores" ? "active" : ""
+                      }`}
+                      onClick={() => handleSidebarItemClick("viewScores")}
+                    >
+                      <i className="fas fa-chart-bar me-2"></i> View Scores
+                    </Link>
                 </li>
                 <li className="nav-item">
                   <Link to="#" className="nav-link text-light" onClick={handleLogout}>
@@ -197,141 +213,150 @@ const StudentDashboard = () => {
               </div>
             </div>
           </div>
-          <div className="card bg-light my-4">
-            <div className="card-header">
-              <div className="row">
-                <div className="col-lg-2 col-md-3">
-                  <label htmlFor="semesterSelect" className="form-label">Select Semester</label>
+          {activeItem === "dashboard" && (
+          <div id="dashboard">          
+            <div className="card bg-light my-4">
+              <div className="card-header">
+                <div className="row">
+                  <div className="col-lg-2 col-md-3">
+                    <label htmlFor="semesterSelect" className="form-label">Select Semester</label>
+                  </div>
+                  <div className="col-lg-3 col-md-4">
+                    <select
+                      id="semesterSelect"
+                      className="form-select form-select-sm"
+                      value={selectedSemester}
+                      onChange={(e) => handleSemesterSelection(e.target.value)}
+                      style={{ width: 'auto' }}
+                    >
+                      <option value="semester1">Semester 1</option>
+                      <option value="semester2">Semester 2</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="col-lg-3 col-md-4">
-                  <select
-                    id="semesterSelect"
-                    className="form-select form-select-sm"
-                    value={selectedSemester}
-                    onChange={(e) => handleSemesterSelection(e.target.value)}
-                    style={{ width: 'auto' }}
-                  >
-                    <option value="semester1">Semester 1</option>
-                    <option value="semester2">Semester 2</option>
-                  </select>
-                </div>
               </div>
-            </div>
-            <div className="card-body">
-              <div className="mb-4">
-                <h4>Available Courses</h4>
-                <Table striped bordered hover>
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Name</th>
-                      <th>Description</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {courses.map((course) => (
-                      <tr key={course.code}>
-                        <td>{course.code}</td>
-                        <td>{course.name}</td>
-                        <td>{course.description}</td>
-                        <td>
-                          <Button
-                            variant="primary"
-                            onClick={() => handleCourseSelection(course.code)}
-                            disabled={
-                              selectedCourses.includes(course.code) ||
-                              selectedCourses.length >= 5
-                            }
-                          >
-                            {selectedCourses.includes(course.code)
-                              ? "Selected"
-                              : "Select"}
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            </div>
-          </div>
-          <div className="card bg-light mb-2">
-            <div className="card-body">
-              <div>
-                <h4 className="card-title">Selected Courses</h4>
-                <Table striped bordered hover>
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Name</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedCourses.map((courseCode, index) => (
-                      <tr key={`${courseCode}-${index}`}>
-                        <td>{courseCode}</td>
-                        <td>
-                          {/* Display course name based on courseCode */}
-                          {courses.find((course) => course.code === courseCode)?.name}
-                        </td>
-                        <td>
-                          <Button
-                            variant="danger"
-                            onClick={() => removeSelectedCourse(courseCode)}
-                          >
-                            Remove
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-
-              <div>
-                <Button
-                  variant="primary"
-                  onClick={registerCourses}
-                  disabled={selectedCourses.length === 0 || selectedCoursesCount < 5}
-                >
-                  Register Selected Courses
-                </Button>
-                {error && <p className="text-danger mt-3">{error}</p>}
-              </div>
-            </div>
-          </div>
-        </div>
-        {activeItem === "registeredCourses" && (
-            <div>
-              <h2>Registered Courses</h2>
-              {/* Display table for registered courses per semester */}
-              {Object.keys(registeredCoursesBySemester).map((semester) => (
-                <div key={semester}>
-                  <h4>{semester}</h4>
+              <div className="card-body">
+                <div className="mb-4">
+                  <h4>Available Courses</h4>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
                         <th>Code</th>
                         <th>Name</th>
-                        {/* Add other table headers if needed */}
+                        <th>Description</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {registeredCoursesBySemester[semester].map((course) => (
+                      {courses.map((course) => (
                         <tr key={course.code}>
                           <td>{course.code}</td>
                           <td>{course.name}</td>
-                          {/* Add other table data if needed */}
+                          <td>{course.description}</td>
+                          <td>
+                            <Button
+                              variant="primary"
+                              onClick={() => handleCourseSelection(course.code)}
+                              disabled={
+                                selectedCourses.includes(course.code) ||
+                                selectedCourses.length >= 5
+                              }
+                            >
+                              {selectedCourses.includes(course.code)
+                                ? "Selected"
+                                : "Select"}
+                            </Button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </Table>
                 </div>
-              ))}
+              </div>
             </div>
+            <div className="card bg-light mb-2">
+              <div className="card-body">
+                <div>
+                  <h4 className="card-title">Selected Courses</h4>
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedCourses.map((courseCode, index) => (
+                        <tr key={`${courseCode}-${index}`}>
+                          <td>{courseCode}</td>
+                          <td>
+                            {/* Display course name based on courseCode */}
+                            {courses.find((course) => course.code === courseCode)?.name}
+                          </td>
+                          <td>
+                            <Button
+                              variant="danger"
+                              onClick={() => removeSelectedCourse(courseCode)}
+                            >
+                              Remove
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
+
+                <div>
+                  <Button
+                    variant="primary"
+                    onClick={registerCourses}
+                    disabled={selectedCourses.length === 0 || selectedCoursesCount < 5}
+                  >
+                    Register Selected Courses
+                  </Button>
+                  {error && <p className="text-danger mt-3">{error}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
           )}
+          {activeItem === "registeredCourses" && (
+              <div id="registeredCourses">
+                <h2>Registered Courses</h2>
+                {/* Display table for registered courses per semester */}
+                {/* {Object.keys(registeredCoursesBySemester).map((semester) => ( */}
+                  {/* <div key={semester}> */}
+                    {/* <h4>{semester}</h4>
+                    <Table striped bordered hover>
+                      <thead>
+                        <tr>
+                          <th>Code</th>
+                          <th>Name</th>
+                          {/* Add other table headers if needed */}
+                        {/* </tr> */}
+                      {/* </thead> */} 
+                      {/* <tbody> */}
+                        {/* {registeredCoursesBySemester[semester].map((course) => ( */}
+                          {/* <tr key={course.code}>
+                            <td>{course.code}</td>
+                            <td>{course.name}</td> */}
+                            {/* Add other table data if needed */}
+                          {/* </tr> */}
+                        {/* ))} */}
+                      {/* </tbody>
+                    </Table>
+                  </div> */}
+                {/* ))} */}
+              </div>
+            )}
+          {activeItem === "viewScores" && (
+              <div id="viewScores">
+                {/* View Scores content here */}
+              </div>
+            )}
+        </div>
       </div>
     </div>
     
