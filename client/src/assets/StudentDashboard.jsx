@@ -18,6 +18,7 @@ const StudentDashboard = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeItem, setActiveItem] = useState("dashboard");
 
+  // Fetch courses for registration
   const fetchCourses = async () => {
     try {
       const response = await axios.get("http://localhost:7000/api/course");
@@ -27,6 +28,7 @@ const StudentDashboard = () => {
     }
   };
 
+  // Fetch courses registered by student
   const fetchRegisteredCourses = async () => {
     try {
       const response = await axios.get(
@@ -38,6 +40,7 @@ const StudentDashboard = () => {
     }
   };
 
+  // Fetch student information
   const fetchStudentInfo = async () => {
     try {
       const response = await axios.get("http://localhost:7000/api/scores");
@@ -47,11 +50,13 @@ const StudentDashboard = () => {
     }
   };
 
+  // Course selection for each semester
   const handleSemesterSelection = (semester) => {
     setSelectedSemester(semester);
     setSelectedCourses([]);
   };
 
+  // Course selection ensuring student registers at least 5 courses
   const handleCourseSelection = (courseCode) => {
     if (selectedCoursesCount < 5) {
       if (selectedCourses.includes(courseCode)) {
@@ -64,6 +69,7 @@ const StudentDashboard = () => {
     }
   };
 
+  // Course registration for student
   const registerCourses = async () => {
     try {
       await axios.post("http://localhost:7000/api/register-courses", {
@@ -86,7 +92,31 @@ const StudentDashboard = () => {
     }
   };
   
+  // Remove Selected Courses
+  const removeSelectedCourse = (courseCode) => {
+    setSelectedCoursesCount(selectedCoursesCount - 1);
+    setSelectedCourses(selectedCourses.filter((code) => code !== courseCode));
+  };
+  
+  // Function to handle logout
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
 
+  // Function to close modal
+  const handleClose = () => {
+    setShowLogoutModal(false);
+  };
+  
+  // Function to handle sidebar item click
+  const handleSidebarItemClick = (item) => {
+    setActiveItem(item);
+    console.log(item,"clicked")
+    // if (item === "registeredCourses") {
+    //   fetchRegisteredCourses();
+    // }
+  };
+  
   useEffect(() => {
     // Retrieve the object from local storage
     const storedUserDetails = JSON.parse(localStorage.getItem("userDetails"));
@@ -102,30 +132,6 @@ const StudentDashboard = () => {
     fetchCourses();
     fetchRegisteredCourses();
   }, [selectedSemester]);
-  
-  // Remove Selected Courses
-  const removeSelectedCourse = (courseCode) => {
-    setSelectedCoursesCount(selectedCoursesCount - 1);
-    setSelectedCourses(selectedCourses.filter((code) => code !== courseCode));
-  };
-  
-  // Function to handle logout
-  const handleLogout = () => {
-    setShowLogoutModal(true);
-  };
-
-  const handleClose = () => {
-    setShowLogoutModal(false);
-  };
-  
-  // Function to handle sidebar item click
-  const handleSidebarItemClick = (item) => {
-    setActiveItem(item);
-    console.log(item,"clicked")
-    // if (item === "registeredCourses") {
-    //   fetchRegisteredCourses();
-    // }
-  };
 
   return (
     <div className="container-fluid">

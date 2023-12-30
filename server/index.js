@@ -8,19 +8,15 @@ const getCoursesRouter = require("./routes/courseRoute");
 
 const mongoose = require('mongoose');
 const cors = require('cors');
-const Users = require('./models/users');
-const Course = require('./models/course');
 const bodyParser = require('body-parser');
-const Score= require('./models/scores');
-const StudentCourse= require('./models/student-course');
 const app = express(); 
 app.use(express.json());
 app.use(cors());
 
 // Database connection
-mongoose.connect("mongodb+srv://hazardmourinho10:AiTG@university-records.ggppa22.mongodb.net/?retryWrites=true&w=majority", 
-{ useNewUrlParser: true, 
-    useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI, { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true })
   .then(() => {
     console.log("MongoDB connected");
   })
@@ -36,6 +32,8 @@ app.use("/api", loginRouter);
 app.use("/api", getCoursesRouter);
 // Register Courses API
 app.use("/api", registerCoursesRouter);
+// Fetch registered student courses API
+// app.use("/api", )
 
 // app.get('/user', async (req, res) => {
 //   try {
