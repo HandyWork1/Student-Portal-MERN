@@ -14,10 +14,10 @@ const courseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  lecturer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Users', // Reference to the lecturer teaching the course
-  },
+  // lecturer: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Users', // Reference to the lecturer teaching the course
+  // },
 });
 
 const Course = mongoose.model('courses', courseSchema);

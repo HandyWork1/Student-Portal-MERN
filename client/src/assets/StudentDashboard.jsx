@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Table, Button} from "react-bootstrap";
+import { Accordion, Card, Table, Button} from "react-bootstrap";
 import RegistrationAlertModal from "./modals/RegistrationAlertModal"
 import LogoutAlertModal from "./modals/LogoutAlertModal"
 import {Link} from "react-router-dom"
@@ -31,24 +31,35 @@ const StudentDashboard = () => {
   // Fetch courses registered by student
   const fetchRegisteredCourses = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:7000/api/student/${selectedSemester}`
-      );
-      setRegisteredCourses(response.data.courses);
-    } catch (error) {
-      console.error("Error fetching registered courses:", error.message);
-    }
-  };
+      const userDetails = JSON.parse(localStorage.getItem('userDetails'));
+      const userId = userDetails?.userId;
 
-  // Fetch student information
-  const fetchStudentInfo = async () => {
-    try {
-      const response = await axios.get("http://localhost:7000/api/scores");
-      setStudentName(response.data.scores[0].studentName);
+      const response = await axios.get(`http://localhost:7000/api/student/courses/${userId}`);
+      console.log(response.data);
+      console.log(response.data.courses);
+      if (response.data && response.data.courses) {
+        setRegisteredCourses(response.data.courses);
+        if(registeredCourses && registeredCourses.length > 0 ){
+
+          console.log("Went inside the filled array", registeredCourses);
+        }
+      } else {
+        setRegisteredCourses([]); // Set an empty array if no courses are found
+      }
+      console.log(registeredCourses);
     } catch (error) {
-      console.error("Error fetching student information:", error.message);
+      console.error('Error fetching registered courses:', error.message);
+      setRegisteredCourses([]); // Set an empty array on error
     }
   };
+  const groupedCoursesBySemester = registeredCourses.reduce((acc, course) => {
+    if (!acc[course.semester]) {
+      acc[course.semester] = [];
+    }
+    acc[course.semester].push(course);
+    return acc;
+  }, {});
+
 
   // Course selection for each semester
   const handleSemesterSelection = (semester) => {
@@ -72,16 +83,19 @@ const StudentDashboard = () => {
   // Course registration for student
   const registerCourses = async () => {
     try {
-      await axios.post("http://localhost:7000/api/register-courses", {
-        studentName: userDetails.name,
+      const userDetails = JSON.parse(localStorage.getItem("userDetails"));
+      const userId = userDetails?.userId; 
+
+      const response = await axios.post("http://localhost:7000/api/register-courses", {
+        userId,
         semester: selectedSemester,
         courses: selectedCourses,
       });
-  
+
       // Assuming the registration was successful, update the local state
-      const updatedRegisteredCourses = [...registeredCourses, ...selectedCourses];
-      setRegisteredCourses(updatedRegisteredCourses);
-  
+      // const updatedRegisteredCourses = [...registeredCourses, ...selectedCourses];
+      // setRegisteredCourses(updatedRegisteredCourses);
+
       // Reset selected courses and count after successful registration
       setSelectedCourses([]);
       setSelectedCoursesCount(0);
@@ -112,9 +126,6 @@ const StudentDashboard = () => {
   const handleSidebarItemClick = (item) => {
     setActiveItem(item);
     console.log(item,"clicked")
-    // if (item === "registeredCourses") {
-    //   fetchRegisteredCourses();
-    // }
   };
   
   useEffect(() => {
@@ -125,90 +136,98 @@ const StudentDashboard = () => {
     if (storedUserDetails) {
       setUserDetails(storedUserDetails);
     }
+
   }, []);
 
   useEffect(() => {
-    fetchStudentInfo();
+    if (activeItem === "registeredCourses") {
+       // Fetch courses callback
+     fetchRegisteredCourses();
+    }
+  }, [activeItem]);
+
+  useEffect(() => {
     fetchCourses();
-    fetchRegisteredCourses();
   }, [selectedSemester]);
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        {/* Sidebar */}
-        <div className="col-md-3 col-lg-2 bg-primary">
-          <nav className="navbar navbar-expand-md navbar-light">
-            <button
-              className="navbar-toggler"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#navbarNav"
-              aria-controls="navbarNav"
-              aria-expanded="false"
-              aria-label="Toggle navigation"
-            >
-              <span className="navbar-toggler-icon"></span>
-            </button>
-            <div className="collapse navbar-collapse" id="navbarNav">
-              <ul className="navbar-nav flex-column mt-4">
-                <div className="text-light mb-4">
-                  <h3>Student Dashboard</h3>
-                </div>
-                <li className="nav-item">
-                  <Link
-                    to="#"
-                    className={`nav-link text-light ${
-                      activeItem === "dashboard" ? "active" : ""
-                    }`}
-                    onClick={() => handleSidebarItemClick("dashboard")}
-                  >
-                    <i className="fas fa-tachometer-alt me-2"></i> Dashboard
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link
-                    to="#"
-                    className={`nav-link text-light ${
-                      activeItem === "registeredCourses" ? "active" : ""
-                    }`}
-                    onClick={() => handleSidebarItemClick("registeredCourses")}
-                  >
-                    <i className="fas fa-graduation-cap me-2"></i> Registered Courses
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link
-                      to="#"
-                      className={`nav-link text-light ${
-                        activeItem === "viewScores" ? "active" : ""
-                      }`}
-                      onClick={() => handleSidebarItemClick("viewScores")}
-                    >
-                      <i className="fas fa-chart-bar me-2"></i> View Scores
-                    </Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="#" className="nav-link text-light" onClick={handleLogout}>
-                    <i className="fas fa-sign-out-alt me-2"></i> Logout
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </nav>
-        </div>
-        {/* Display the registration alert modal */}
-        <RegistrationAlertModal
-          show={showRegistrationAlert}
-          onHide={() => setShowRegistrationAlert(false)}
-        />
-        {/* Display Logout alert modal */}
-        <LogoutAlertModal
-          show={showLogoutModal}
-          onHide={handleClose}
-        />
+    <div>
+      <div className="container-fluid">
 
-        {/* Main Content */}
+      <div className="row">
+      {/* Sidebar */}
+      <div className="col-md-3 col-lg-2 bg-primary vh-100">
+        <nav className="navbar navbar-expand-md navbar-light">
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav flex-column mt-4">
+              <div className="text-light mb-4">
+                <h3>Student Dashboard</h3>
+              </div>
+              <li className="nav-item">
+                <Link
+                  to="#"
+                  className={`nav-link text-light ${
+                    activeItem === "dashboard" ? "active" : ""
+                  }`}
+                  onClick={() => handleSidebarItemClick("dashboard")}
+                >
+                  <i className="fas fa-tachometer-alt me-2"></i> Dashboard
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  to="#"
+                  className={`nav-link text-light ${
+                    activeItem === "registeredCourses" ? "active" : ""
+                  }`}
+                  onClick={() => handleSidebarItemClick("registeredCourses")}
+                >
+                  <i className="fas fa-graduation-cap me-2"></i> Registered Courses
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                    to="#"
+                    className={`nav-link text-light ${
+                      activeItem === "viewScores" ? "active" : ""
+                    }`}
+                    onClick={() => handleSidebarItemClick("viewScores")}
+                  >
+                    <i className="fas fa-chart-bar me-2"></i> View Scores
+                  </Link>
+              </li>
+              <li className="nav-item">
+                <Link to="#" className="nav-link text-light" onClick={handleLogout}>
+                  <i className="fas fa-sign-out-alt me-2"></i> Logout
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </div>
+      {/* Display the registration alert modal */}
+      <RegistrationAlertModal
+        show={showRegistrationAlert}
+        onHide={() => setShowRegistrationAlert(false)}
+      />
+      {/* Display Logout alert modal */}
+      <LogoutAlertModal
+        show={showLogoutModal}
+        onHide={handleClose}
+      />
+
+      {/* Main Content */}
         <div className="col-md-9 mt-3">
           <div className="row">
             <div className="col-lg-5">
@@ -269,8 +288,8 @@ const StudentDashboard = () => {
                               }
                             >
                               {selectedCourses.includes(course.code)
-                                ? "Selected"
-                                : "Select"}
+                                ? "Course Added"
+                                : "Add Course"}
                             </Button>
                           </td>
                         </tr>
@@ -329,40 +348,58 @@ const StudentDashboard = () => {
           </div>
           )}
           {activeItem === "registeredCourses" && (
-              <div id="registeredCourses">
-                <h2>Registered Courses</h2>
-                {/* Display table for registered courses per semester */}
-                {/* {Object.keys(registeredCoursesBySemester).map((semester) => ( */}
-                  {/* <div key={semester}> */}
-                    {/* <h4>{semester}</h4>
-                    <Table striped bordered hover>
-                      <thead>
-                        <tr>
-                          <th>Code</th>
-                          <th>Name</th>
-                          {/* Add other table headers if needed */}
-                        {/* </tr> */}
-                      {/* </thead> */} 
-                      {/* <tbody> */}
-                        {/* {registeredCoursesBySemester[semester].map((course) => ( */}
-                          {/* <tr key={course.code}>
-                            <td>{course.code}</td>
-                            <td>{course.name}</td> */}
-                            {/* Add other table data if needed */}
-                          {/* </tr> */}
-                        {/* ))} */}
-                      {/* </tbody>
-                    </Table>
-                  </div> */}
-                {/* ))} */}
-              </div>
-            )}
+            <div id="registeredCourses">
+              <h2 className="mt-4 mb-3">Registered Courses</h2>
+              {/* Display registered courses per semester */}
+              {Object.entries(groupedCoursesBySemester).map(([semester, courses]) => (
+                <div className="accordion" key={semester}>
+                  <div className="accordion-item">
+                    <h2 className="accordion-header" id={`heading-${semester}`}>
+                      <button
+                        className="accordion-button"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target={`#collapse-${semester}`}
+                        aria-expanded="true"
+                        aria-controls={`collapse-${semester}`}
+                      >
+                        {semester}
+                      </button>
+                    </h2>
+                    <div
+                      id={`collapse-${semester}`}
+                      className="accordion-collapse collapse"
+                      aria-labelledby={`heading-${semester}`}
+                    >
+                      <div className="accordion-body">
+                        {courses.map((course) => (
+                          <div className="card mb-3" key={course._id}>
+                            <div className="card-body">
+                              <h5 className="card-title">{course.course.code}</h5>
+                              <p className="card-text">{course.course.name}</p>
+                              {/* Add other course details as needed */}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+
+
+
           {activeItem === "viewScores" && (
               <div id="viewScores">
                 {/* View Scores content here */}
               </div>
             )}
         </div>
+        </div>
+
       </div>
     </div>
     
