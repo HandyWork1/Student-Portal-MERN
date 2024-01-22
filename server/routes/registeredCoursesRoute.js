@@ -19,13 +19,6 @@ router.get('/student/courses/:userId', async (req, res) => {
         path: 'course',
         model: Course,
       });
-      registeredCourses.forEach(course => {
-        if (course.course && course.course.name) {
-          console.log(course.course.name);
-        } else {
-          console.log("Course name not available.");
-        }
-      });
 
     res.json({ courses: registeredCourses });
   } catch (error) {
