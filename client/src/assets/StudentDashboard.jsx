@@ -35,23 +35,17 @@ const StudentDashboard = () => {
       const userId = userDetails?.userId;
 
       const response = await axios.get(`http://localhost:7000/api/student/courses/${userId}`);
-      console.log(response.data);
-      console.log(response.data.courses);
       if (response.data && response.data.courses) {
         setRegisteredCourses(response.data.courses);
-        if(registeredCourses && registeredCourses.length > 0 ){
-
-          console.log("Went inside the filled array", registeredCourses);
-        }
       } else {
         setRegisteredCourses([]); // Set an empty array if no courses are found
       }
-      console.log(registeredCourses);
     } catch (error) {
       console.error('Error fetching registered courses:', error.message);
       setRegisteredCourses([]); // Set an empty array on error
     }
   };
+  // Group Courses by Semester
   const groupedCoursesBySemester = registeredCourses.reduce((acc, course) => {
     if (!acc[course.semester]) {
       acc[course.semester] = [];
@@ -91,10 +85,6 @@ const StudentDashboard = () => {
         semester: selectedSemester,
         courses: selectedCourses,
       });
-
-      // Assuming the registration was successful, update the local state
-      // const updatedRegisteredCourses = [...registeredCourses, ...selectedCourses];
-      // setRegisteredCourses(updatedRegisteredCourses);
 
       // Reset selected courses and count after successful registration
       setSelectedCourses([]);
@@ -156,7 +146,7 @@ const StudentDashboard = () => {
 
       <div className="row">
       {/* Sidebar */}
-      <div className="col-md-3 col-lg-2 bg-primary vh-100">
+      <div className="col-lg-2 col-md-3 bg-light">
         <nav className="navbar navbar-expand-md navbar-light">
           <button
             className="navbar-toggler"
@@ -171,13 +161,13 @@ const StudentDashboard = () => {
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
             <ul className="navbar-nav flex-column mt-4">
-              <div className="text-light mb-4">
+              <div className="mb-4">
                 <h3>Student Dashboard</h3>
               </div>
               <li className="nav-item">
                 <Link
                   to="#"
-                  className={`nav-link text-light ${
+                  className={`nav-link ${
                     activeItem === "dashboard" ? "active" : ""
                   }`}
                   onClick={() => handleSidebarItemClick("dashboard")}
@@ -188,7 +178,7 @@ const StudentDashboard = () => {
               <li className="nav-item">
                 <Link
                   to="#"
-                  className={`nav-link text-light ${
+                  className={`nav-link ${
                     activeItem === "registeredCourses" ? "active" : ""
                   }`}
                   onClick={() => handleSidebarItemClick("registeredCourses")}
@@ -199,7 +189,7 @@ const StudentDashboard = () => {
               <li className="nav-item">
                 <Link
                     to="#"
-                    className={`nav-link text-light ${
+                    className={`nav-link ${
                       activeItem === "viewScores" ? "active" : ""
                     }`}
                     onClick={() => handleSidebarItemClick("viewScores")}
@@ -208,7 +198,7 @@ const StudentDashboard = () => {
                   </Link>
               </li>
               <li className="nav-item">
-                <Link to="#" className="nav-link text-light" onClick={handleLogout}>
+                <Link to="#" className="nav-link" onClick={handleLogout}>
                   <i className="fas fa-sign-out-alt me-2"></i> Logout
                 </Link>
               </li>
@@ -228,7 +218,7 @@ const StudentDashboard = () => {
       />
 
       {/* Main Content */}
-        <div className="col-md-9 mt-3">
+        <div className="col-md-8 mt-3">
           <div className="row">
             <div className="col-lg-5">
               <div className="card bg-light text-center">
@@ -352,7 +342,7 @@ const StudentDashboard = () => {
               <h2 className="mt-4 mb-3">Registered Courses</h2>
               {/* Display registered courses per semester */}
               {Object.entries(groupedCoursesBySemester).map(([semester, courses]) => (
-                <div className="accordion" key={semester}>
+                <div className="accordion mb-5" key={semester}>
                   <div className="accordion-item">
                     <h2 className="accordion-header" id={`heading-${semester}`}>
                       <button
