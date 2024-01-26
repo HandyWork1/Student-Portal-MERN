@@ -3,6 +3,7 @@ const router = express.Router();
 const StudentCourse = require("../models/student-course");
 const Course = require("../models/course");
 const User = require("../models/users");
+const Score = require("../models/scores");
 
 router.get('/student/courses/:userId', async (req, res) => {
   try {
@@ -18,6 +19,10 @@ router.get('/student/courses/:userId', async (req, res) => {
       .populate({
         path: 'course',
         model: Course,
+      }).populate({
+        path: 'scores',
+        model: Score,
+        select: 'assignment1 assignment2 cat1 cat2 exam', // Specify the fields you want from the Score model
       });
 
     res.json({ courses: registeredCourses });
