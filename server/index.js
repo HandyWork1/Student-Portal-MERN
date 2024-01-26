@@ -9,6 +9,7 @@ const registeredCoursesRouter = require("./routes/registeredCoursesRoute");
 const fetchStudentsRouter = require("./routes/fetchStudentsRoute");
 const fetchScoresRouter = require("./routes/fetchScoresRoute");
 const addScoresRouter = require("./routes/addScoresRoute.js");
+const fetchStudentScoreRouter = require("./routes/fetchStudentScores.js");
 
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -44,6 +45,8 @@ app.use("/api", fetchStudentsRouter);
 app.use("/api", fetchScoresRouter);
 // Add students scores
 app.use("/api", addScoresRouter);
+// Fetch student's scores
+app.use("/api", fetchStudentScoreRouter);
 
 // app.get('/user', async (req, res) => {
 //   try {
