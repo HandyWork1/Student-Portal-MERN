@@ -14,36 +14,20 @@ body{
 /* =========================
   Navbar Styles
 ============================ */
-.navbar{
-  box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
-
-}
 .sidebar {
-    position: fixed;
+    position: sticky;
     top: 0;
-    bottom: 0;
-    left: 0;
-    padding: 58px 0 0; /* Height of navbar */
+    height: 100%;
     box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
-    width: 240px;
-    z-index: 600;
   }
 
-  .sidebar-sticky {
-    position: relative;
-    top: 0;
-    height: calc(100vh - 48px);
-    padding-top: 0.5rem;
-    overflow-x: hidden;
-    overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
-  }
   .nav-item .nav-link{
     color: #333;
   }
   .nav-item .nav-link.active {
     border-radius: 5px;
     background-color:  #007bff !important;
-    color: #fff;
+    color: #fff !important;
     box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
   }
   .row{
@@ -52,3 +36,8 @@ body{
   .sub-header{
     color: #8E95AE;
   }
+  @media (max-width: 767.98px) {
+    .sidebar.vh-100 {
+       height: auto !important;
+    }
+   }
