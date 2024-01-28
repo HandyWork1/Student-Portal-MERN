@@ -8,8 +8,10 @@ const getCoursesRouter = require("./routes/courseRoute");
 const registeredCoursesRouter = require("./routes/registeredCoursesRoute");
 const fetchStudentsRouter = require("./routes/fetchStudentsRoute");
 const fetchScoresRouter = require("./routes/fetchScoresRoute");
-const addScoresRouter = require("./routes/addScoresRoute.js");
-const fetchStudentScoreRouter = require("./routes/fetchStudentScores.js");
+const addScoresRouter = require("./routes/addScoresRoute");
+const fetchStudentScoreRouter = require("./routes/fetchStudentScores");
+const adminFetchCoursesRouter = require("./routes/adminFetchCourses");
+const addCourseRouter = require("./routes/addCourseRoute");
 
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -47,6 +49,10 @@ app.use("/api", fetchScoresRouter);
 app.use("/api", addScoresRouter);
 // Fetch student's scores
 app.use("/api", fetchStudentScoreRouter);
+// Admin Fetch courses
+app.use("/api", adminFetchCoursesRouter);
+// Admin Add courses
+app.use("/api", addCourseRouter);
 
 // app.get('/user', async (req, res) => {
 //   try {
