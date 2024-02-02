@@ -12,6 +12,8 @@ const addScoresRouter = require("./routes/addScoresRoute");
 const fetchStudentScoreRouter = require("./routes/fetchStudentScores");
 const adminFetchCoursesRouter = require("./routes/adminFetchCourses");
 const addCourseRouter = require("./routes/addCourseRoute");
+const fetchAdminStudentsRouter = require("./routes/fetchAdminStudentsRoute.js");
+const adminEditScoresRouter = require("./routes/adminEditScoresRoute");
 
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -53,8 +55,12 @@ app.use("/api", fetchStudentScoreRouter);
 app.use("/api", adminFetchCoursesRouter);
 // Admin Add courses
 app.use("/api", addCourseRouter);
+// Admin fetch students and courses
+app.use("/api", fetchAdminStudentsRouter);
+// Admin update students scores
+app.use("/api", adminEditScoresRouter);
 
-// app.get('/user', async (req, res) => {
+
 //   try {
 //       // Fetch scores from the database
 //       const name = await Users.find();

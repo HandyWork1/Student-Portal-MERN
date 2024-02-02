@@ -10,14 +10,17 @@ router.get('/admin/courses', async (req, res) => {
     const allCourses = await Course.find();
 
     // Fetch lecturers with associated courses
-    const lecturers = await Users.find({ userType: 'Lecturer' }, 'name courseId');
+    const lecturers = await Users.find({ userType: 'Lecturer' }, 'name courseId email');
 
     // Map lecturers to courses based on courseId
     const coursesWithLecturers = allCourses.map(course => {
       const lecturer = lecturers.find(lecturer => lecturer.courseId === course.code);
+      console.log("lecturer", lecturer);
       return {
         ...course.toObject(),
-        lecturer: lecturer ? lecturer.name : null,
+        lecturer: lecturer
+          ? { name: lecturer.name,  courseId: lecturer.courseId, email: lecturer.email}
+          : null,
       };
     });
 

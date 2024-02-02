@@ -14,9 +14,14 @@ const LecturerDashboard = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeItem, setActiveItem] = useState("dashboard");
   const [semesterData, setSemesterData] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState("");
   const [studentsBySemester, setStudentsBySemester] = useState([]);
   const navigate = useNavigate();
 
+  // Function to handle semester selection
+  const handleSemesterSelect = (event) => {
+    setSelectedSemester(event.target.value);
+  };
   // Opening adding scores modal
   const handleShowAddScoresModal = (student) => {
     setSelectedStudent(student);
@@ -61,32 +66,51 @@ const LecturerDashboard = () => {
       // Convert the response object into an array of semesters
       const semestersArray = Object.keys(response.data.studentsBySemester).map((semesterName) => {
         const students = response.data.studentsBySemester[semesterName];
-
+        console.log("Students object", students);
+        
         // Calculate additional statistics
         const totalStudents = students.length;
-        const avgAssignment1 = calculateAverage(students, 'scores.assignment1');
-        const avgAssignment2 = calculateAverage(students, 'scores.assignment2');
-        const avgCAT1 = calculateAverage(students, 'scores.cat1');
-        const avgCAT2 = calculateAverage(students, 'scores.cat2');
-        const avgExam = calculateAverage(students, 'scores.exam');
         
-        // Calculate total scores out of 100
-        const totalScores = (avgAssignment1 + avgAssignment2 + avgCAT1 + avgCAT2 + avgExam) * 10;
+        // Calculate total scores out of 100 for each student
+        const studentsWithTotalScores = students.map(student => {
+          const totalScores = student.scores ? calculateTotalScores(student.scores[0]) : 0;
+          return {
+            ...student,
+            totalScores: totalScores,
+          };
+        });
+        console.log("Student with scores", studentsWithTotalScores);
+        const avgAssignment1 = calculateAverage(studentsWithTotalScores, 'assignment1');
+        const avgAssignment2 = calculateAverage(studentsWithTotalScores, 'assignment2');
+        const avgCAT1 = calculateAverage(studentsWithTotalScores, 'cat1');
+        const avgCAT2 = calculateAverage(studentsWithTotalScores, 'cat2');
+        const avgExam = calculateAverage(studentsWithTotalScores, 'exam');
+        const totalClassScores = calculateTotalClassScores(studentsWithTotalScores);
+        const classAverage = totalClassScores / studentsWithTotalScores.filter(student => {
+          return student.totalScores !== undefined;
+        }).length
 
         // Calculate pass/fail counts
-        const passCount = students.filter(student => calculateGrade(student.scores.assignment1) !== 'FAIL' && calculateGrade(student.scores.assignment2) !== 'FAIL').length;
-        const failCount = totalStudents - passCount;
+        const passCount = studentsWithTotalScores.filter(student => {
+          return student.totalScores !== undefined && calculateGrade(student.totalScores) !== 'FAIL';
+        }).length;
+
+        const failCount = studentsWithTotalScores.filter(student => {
+          return student.totalScores !== undefined && calculateGrade(student.totalScores) === 'FAIL';
+        }).length;
+
 
         return {
           name: semesterName,
-          students: students,
+          students: studentsWithTotalScores,
           studentCount: totalStudents,
           avgAssignment1: avgAssignment1,
           avgAssignment2: avgAssignment2,
           avgCAT1: avgCAT1,
           avgCAT2: avgCAT2,
           avgExam: avgExam,
-          totalScores: totalScores,
+          totalClassScores: totalClassScores,
+          classAverage: classAverage,
           passCount: passCount,
           failCount: failCount,
         };
@@ -98,17 +122,25 @@ const LecturerDashboard = () => {
       setStudentsBySemester(semestersArray);
     } catch (error) {
       console.error('Error fetching students for the lecturer:', error.message);
-    } finally{
+    } finally {
       setLoadingStudents(false);
     }
   };
-  // Function to calculate the average of a particular field in an array of objects
-  const calculateAverage = (array, field) => {
-    const total = array.reduce((acc, student) => acc + student.scores[field], 0);
-    return total / array.length || 0; // Avoid division by zero
-  };
+
+// Function to calculate the average of a particular field in an array of objects
+const calculateAverage = (array, field) => {
+  // Filter out students without scores for the specified field
+  const studentsWithScores = array.filter(student => student.scores && student.scores.length > 0 && student.scores[0][field] !== undefined);
+
+  // Calculate the average only for students with scores
+  const total = studentsWithScores.reduce((acc, student) => acc + student.scores[0][field], 0);
+
+  return total / studentsWithScores.length || 0; // Avoid division by zero
+};
+
   // Function to calculate letter grade based on the score
   const calculateGrade = (score) => {
+    if (score === undefined) return 'N/A';
     if (score >= 90) return 'A';
     if (score >= 87) return 'A-';
     if (score >= 84) return 'B+';
@@ -123,9 +155,18 @@ const LecturerDashboard = () => {
   };
   // Function to calculate total scores out of 100
   const calculateTotalScores = (scores) => {
-    const { assignment1, assignment2, cat1, cat2, exam } = scores;
-    const totalScores = (assignment1 + assignment2 + cat1 + cat2 + exam);
+    if (!scores) {
+      return undefined;
+    }
+  
+    const { assignment1 = 0, assignment2 = 0, cat1 = 0, cat2 = 0, exam = 0 } = scores;
+    const totalScores = assignment1 + assignment2 + cat1 + cat2 + exam;
     return totalScores > 100 ? 100 : totalScores; // Ensure the total scores do not exceed 100
+  };
+  // Function to calculate the sum of total scores for all students with scores
+  const calculateTotalClassScores = (array) => {
+    const studentsWithScores = array.filter(student => student.totalScores !== undefined);
+    return studentsWithScores.reduce((acc, student) => acc + student.totalScores, 0);
   };
 
   // Function to determine the text color based on the grade
@@ -264,63 +305,131 @@ const LecturerDashboard = () => {
             {activeItem === "dashboard" && (
               <div id="dashboard">
                 <h3>Dashboard</h3>
-                {semesterData.map((semester, index) => (
-                  <div key={index}>
-                    <h6 className="sub-header">{`Semester: ${semester.name || 'Unknown Semester'}`}</h6>
-                    <p>{`Total Students: ${semester.studentCount}`}</p>
-                    <p>{`Average Assignment 1: ${semester.avgAssignment1}`}</p>
-                    <p>{`Average Assignment 2: ${semester.avgAssignment2}`}</p>
-                    <p>{`Average CAT 1: ${semester.avgCat1}`}</p>
-                    <p>{`Average CAT 2: ${semester.avgCat2}`}</p>
-                    <p>{`Average Exam: ${semester.avgExam}`}</p>
-                    {/* Continue rendering the student table */}
+                  {/* Semester Dropdown */}
+                  <div className="mb-3">
+                    <label htmlFor="semesterDropdown" className="mr-2">
+                      Select Semester:
+                    </label>
+                    <select
+                      id="semesterDropdown"
+                      className="form-select"
+                      value={selectedSemester}
+                      onChange={handleSemesterSelect}
+                    >
+                      <option value="">All Semesters</option>
+                      {semesterData.map((semester, index) => (  
+                        <option key={index} value={semester.name}>
+                          {semester.name || 'Unknown Semester'}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                ))}
-                {semesterData.map((semester, index) => (
-                  <div key={index}>
-                    <h5>{`Semester: ${semester.name || 'Unknown Semester'}`}</h5>
-                    {semester.students.map((student, studentIndex) => (
-                      <Row>
-                        {/* Display Total Students */}
-                        <Col md={3}>
-                          <Card>
-                            <Card.Body>
-                              <Card.Title>Total Students</Card.Title>
-                              <Card.Text style={{ color: 'blue', fontSize: '24px' }}>{student.studentCount}</Card.Text>
-                            </Card.Body>
-                          </Card>
-                        </Col>
+                  {semesterData.map((semester, index) => (
+                    <div key={index}>
+                      {(!selectedSemester || selectedSemester === semester.name) && (
+                        <React.Fragment>
+                          <h6 className="sub-header">{`Semester: ${semester.name === 'semester1' ? 'Semester 1' : 'Semester 2'|| 'Unknown Semester'}`}</h6>
+                          {console.log("semester data", semester)}
+                          <Row>
+                            
+                            {/* Display Total Students */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Total Students</Card.Title>
+                                  <Card.Text style={{ color: 'blue', fontSize: '24px' }}>{semester.studentCount}</Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>
+                            {/* Display Pass Count */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Pass Count</Card.Title>
+                                  <Card.Text style={{ color: 'blue', fontSize: '24px' }}>
+                                    {semester.passCount}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>
+                            {/* Display Fail Count */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Fail Count</Card.Title>
+                                  <Card.Text style={{ color: 'red', fontSize: '24px' }}>
+                                    {semester.failCount}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>  
+                            {/* Display Fail Count */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Class Average</Card.Title>
+                                  <Card.Text style={{ color: getTextColor(calculateGrade(semester.classAverage)), fontSize: '24px' }}>
+                                    {semester.classAverage}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>  
+                          </Row>
+                          <Row className="my-3">
+                          <h6 className="sub-header">Performance Averages </h6>
+                            {/* Display Average Assignment 1 */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Average Assignment 1</Card.Title>
+                                  <Card.Text style={{ color: getTextColor(calculateGrade(semester.avgAssignment1)), fontSize: '24px' }}>
+                                    {semester.avgAssignment1}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>
 
-                        {/* Display Average Assignment 1 */}
-                        <Col md={3}>
-                          <Card>
-                            <Card.Body>
-                              <Card.Title>Average Assignment 1</Card.Title>
-                              <Card.Text style={{ color: getTextColor(calculateGrade(semester.avgAssignment1)), fontSize: '24px' }}>
-                                {semester.avgAssignment1}
-                              </Card.Text>
-                            </Card.Body>
-                          </Card>
-                        </Col>
+                            {/* Display Average Assignment 2 */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Average Assignment 2</Card.Title>
+                                  <Card.Text style={{ color: getTextColor(calculateGrade(semester.avgAssignment2)), fontSize: '24px' }}>
+                                    {semester.avgAssignment2}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>                          
+                          </Row>
+                          <Row>
+                            {/* Display Average CAT 1 */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Average CAT 1</Card.Title>
+                                  <Card.Text style={{ color: getTextColor(calculateGrade(semester.avgCAT1)), fontSize: '24px' }}>
+                                    {semester.avgCAT1}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>                          
 
-                        {/* Display Average Assignment 2 */}
-                        <Col md={3}>
-                          <Card>
-                            <Card.Body>
-                              <Card.Title>Average Assignment 2</Card.Title>
-                              <Card.Text style={{ color: getTextColor(calculateGrade(semester.avgAssignment2)), fontSize: '24px' }}>
-                                {semester.avgAssignment2}
-                              </Card.Text>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-
-                        {/* Add more cards for other statistics */}
-                      </Row>
-
-                    ))};
-                  </div>
-                ))}
+                            {/* Display Average CAT 2 */}
+                            <Col md={3}>
+                              <Card>
+                                <Card.Body>
+                                  <Card.Title>Average CAT 2</Card.Title>
+                                  <Card.Text style={{ color: getTextColor(calculateGrade(semester.avgCAT2)), fontSize: '24px' }}>
+                                    {semester.avgCAT2}
+                                  </Card.Text>
+                                </Card.Body>
+                              </Card>
+                            </Col>                          
+                          </Row>
+                        </React.Fragment>
+                      )}
+                    </div>
+                  ))}
               </div>
               
             )}

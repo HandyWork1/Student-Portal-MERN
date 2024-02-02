@@ -18,7 +18,6 @@ router.get('/student/scores/:studentId', async (req, res) => {
     }).populate({
       path: 'scores',
       model: Score,
-      select: 'assignment1 assignment2 cat1 cat2 exam', // Specify the fields you want from the Score model
     });
 
     res.json({ studentCourses });

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-const AddScoresModal = ({ show, handleClose, fetchStudents, student }) => {
+const EditScoresModal = ({ show, handleClose, fetchData, selectedStudent, selectedCourse }) => {
   const [formData, setFormData] = useState({
     assignment1: 0,
     assignment2: 0,
@@ -11,40 +11,34 @@ const AddScoresModal = ({ show, handleClose, fetchStudents, student }) => {
     exam: 0,
   });
 
+  useEffect(() => {
+    // Update formData when selectedCourse scores change
+    if (selectedCourse && selectedCourse.scores && selectedCourse.scores.length > 0) {
+      const scores = selectedCourse.scores[0];
+      setFormData({
+        assignment1: scores.assignment1 || 0,
+        assignment2: scores.assignment2 || 0,
+        cat1: scores.cat1 || 0,
+        cat2: scores.cat2 || 0,
+        exam: scores.exam || 0,
+      });
+    }
+  }, [selectedCourse]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("this is the form data ", formData);  
-    // Check if any of the values are still zero
-    if (
-      formData.assignment1 === 0 ||
-      formData.assignment2 === 0 ||
-      formData.cat1 === 0 ||
-      formData.cat2 === 0 ||
-      formData.exam === 0
-    ) {
-      console.log('Please fill in all score fields.');
-      return;
-    }
-    handleAddScores(student, formData);
-    handleClose();
-  };
-
-  // Add scores 
-  const handleAddScores = async (student) => {
+  // Function to handle the edit and update scores
+  const handleEditScores = async () => {
     try {
-      // Check if scores already exist for the student
-      const existingScore = await axios.get(`http://localhost:7000/api/scores/${student._id}`);
-      console.log("This is the existing score ", existingScore.length);
-  
-      if (existingScore && existingScore.length > 0) {
-        console.log('Scores already exist for this student. Editing is not allowed.');
+      if (!selectedStudent || !selectedCourse || !selectedCourse.scores || selectedCourse.scores.length === 0) {
+        console.error('Invalid student data or no scores available for the selected course.');
         return;
       }
-  
+
+      const scoreId = selectedCourse.scores[0]._id;
+
       // Perform input validation
       if (
         formData.assignment1 > 10 ||
@@ -56,43 +50,36 @@ const AddScoresModal = ({ show, handleClose, fetchStudents, student }) => {
         console.log('Invalid score values. Please check and try again.');
         return;
       }
-  
-      // Assuming you have the studentCourseId in your student object
-      const studentCourseId = student._id;
-  
-      // Perform the addition of scores
-      const response = await axios.post(`http://localhost:7000/api/scores`, {
-        studentName: student.user._id,
-        studentCourse: studentCourseId,
+
+      // Perform the update of scores
+      const response = await axios.put(`http://localhost:7000/api/scores/${scoreId}`, {
         assignment1: formData.assignment1,
         assignment2: formData.assignment2,
         cat1: formData.cat1,
         cat2: formData.cat2,
         exam: formData.exam,
       });
+
       // Refresh table records by fetching students again
-      fetchStudents();
-      console.log('Scores added successfully:', response.data);
-      setFormData({
-        assignment1: 0,
-        assignment2: 0,
-        cat1: 0,
-        cat2: 0,
-        exam: 0,
-      });
-  
+      fetchData();
+      console.log('Scores updated successfully:', response.data);
+
+      // You might want to update the UI or state after a successful update
+      handleClose();
     } catch (error) {
-      console.error('Error adding scores:', error.message);
+      console.error('Error updating scores:', error.message);
     }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleEditScores();
   };
 
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
-      <Modal.Title>
-        {student && student.user && student.user.name ? `Add Scores for ${student.user.name}` : 'Add Scores'}
-      </Modal.Title>
-
+        <Modal.Title>{`Edit Scores for ${selectedStudent && selectedStudent.user && selectedStudent.user.name}`}</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form onSubmit={handleSubmit}>
@@ -152,7 +139,7 @@ const AddScoresModal = ({ show, handleClose, fetchStudents, student }) => {
           </Form.Group>
 
           <Button className='mt-3' variant="primary" type="submit">
-            Add Scores
+            Update Scores
           </Button>
         </Form>
       </Modal.Body>
@@ -160,4 +147,4 @@ const AddScoresModal = ({ show, handleClose, fetchStudents, student }) => {
   );
 };
 
-export default AddScoresModal;
+export default EditScoresModal;

@@ -383,7 +383,7 @@ const StudentDashboard = () => {
                 {Object.entries(groupedCoursesBySemester).map(([semester, courses]) => (
                   <div className="accordion mb-5" key={semester}>
                     <div className="accordion-item">
-                      <h2 className="accordion-header" id={`heading-${semester}`}>
+                      <h2 className="accordion-header" id={`heading-${semester === 'semester1' ? 'Semester 1' : 'Semester 2'}`}>
                         <button
                           className="accordion-button"
                           type="button"
@@ -430,7 +430,7 @@ const StudentDashboard = () => {
                     {Object.entries(groupedCoursesBySemester).map(([semester, courses]) => (
                       <div className="accordion mb-4" key={semester}>
                         <div className="accordion-item">
-                          <h5 className="accordion-header" id={`heading-${semester}`}>
+                          <h5 className="accordion-header" id={`heading-${semester === 'semester1' ? 'Semester 1' : 'Semester 2'}`}>
                             <button
                               className="accordion-button"
                               type="button"
