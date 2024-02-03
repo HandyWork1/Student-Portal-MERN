@@ -8,7 +8,6 @@ import Register from "./assets/Register";
 import "bootstrap/dist/css/bootstrap.min.css";
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
-import GRMDashboard from "./assets/GRMDashboard";
 
 function App() {
   return (
@@ -19,7 +18,6 @@ function App() {
         <Route path="/StudentDashboard" element={<StudentDashboard />} />
         <Route path="/LecturerDashboard" element={<LecturerDashboard />} />
         <Route path="/AdminDashboard" element={<AdminDashboard />} />
-        <Route path="/GRMDashboard" element={<GRMDashboard />} />
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>

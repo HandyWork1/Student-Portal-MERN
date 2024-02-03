@@ -5,22 +5,27 @@ const registerRouter = require("./routes/registerRoute");
 const loginRouter = require("./routes/loginRoute");
 const registerCoursesRouter = require("./routes/registerCoursesRoute");
 const getCoursesRouter = require("./routes/courseRoute");
+const registeredCoursesRouter = require("./routes/registeredCoursesRoute");
+const fetchStudentsRouter = require("./routes/fetchStudentsRoute");
+const fetchScoresRouter = require("./routes/fetchScoresRoute");
+const addScoresRouter = require("./routes/addScoresRoute");
+const fetchStudentScoreRouter = require("./routes/fetchStudentScores");
+const adminFetchCoursesRouter = require("./routes/adminFetchCourses");
+const addCourseRouter = require("./routes/addCourseRoute");
+const fetchAdminStudentsRouter = require("./routes/fetchAdminStudentsRoute.js");
+const adminEditScoresRouter = require("./routes/adminEditScoresRoute");
 
 const mongoose = require('mongoose');
 const cors = require('cors');
-const Users = require('./models/users');
-const Course = require('./models/course');
 const bodyParser = require('body-parser');
-const Score= require('./models/scores');
-const StudentCourse= require('./models/student-course');
 const app = express(); 
 app.use(express.json());
 app.use(cors());
 
 // Database connection
-mongoose.connect("mongodb+srv://hazardmourinho10:AiTG@university-records.ggppa22.mongodb.net/?retryWrites=true&w=majority", 
-{ useNewUrlParser: true, 
-    useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI, { 
+  useNewUrlParser: true, 
+  useUnifiedTopology: true })
   .then(() => {
     console.log("MongoDB connected");
   })
@@ -36,8 +41,26 @@ app.use("/api", loginRouter);
 app.use("/api", getCoursesRouter);
 // Register Courses API
 app.use("/api", registerCoursesRouter);
+// Fetch registered student courses API
+app.use("/api", registeredCoursesRouter);
+// Fetch students registered for the course
+app.use("/api", fetchStudentsRouter);
+// Fetch Student scores
+app.use("/api", fetchScoresRouter);
+// Add students scores
+app.use("/api", addScoresRouter);
+// Fetch student's scores
+app.use("/api", fetchStudentScoreRouter);
+// Admin Fetch courses
+app.use("/api", adminFetchCoursesRouter);
+// Admin Add courses
+app.use("/api", addCourseRouter);
+// Admin fetch students and courses
+app.use("/api", fetchAdminStudentsRouter);
+// Admin update students scores
+app.use("/api", adminEditScoresRouter);
 
-// app.get('/user', async (req, res) => {
+
 //   try {
 //       // Fetch scores from the database
 //       const name = await Users.find();

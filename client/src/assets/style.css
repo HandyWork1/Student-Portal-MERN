@@ -1,20 +1,43 @@
-.container {
-    max-width: 600px;
-    margin: auto;
-  }
-  
-  .score-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+  background-color: #F4F6FB;
+}
+
+.bg-light{
+  background-color: #FFFFFF !important;
+}
+/* =========================
+  Navbar Styles
+============================ */
+.sidebar {
+    position: sticky;
+    top: 0;
+    height: 100%;
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
   }
 
-  .submit {
-    padding: 6px 12px; /* Adjust the padding to make it shorter */
-    font-size: 14px; /* Adjust the font size */
+  .nav-item .nav-link{
+    color: #333;
   }
-
-
-  
-  /* Add more styling as needed */
-  
+  .nav-item .nav-link.active {
+    border-radius: 5px;
+    background-color:  #007bff !important;
+    color: #fff !important;
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+  }
+  .row{
+    margin-right: 0 !important;
+  }
+  .sub-header{
+    color: #8E95AE;
+  }
+  @media (max-width: 767.98px) {
+    .sidebar.vh-100 {
+       height: auto !important;
+    }
+   }
